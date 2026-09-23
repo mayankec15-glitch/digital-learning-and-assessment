@@ -1,0 +1,6 @@
+{
+  "name": "UP ITI Digital Library & CBT Portal",
+  "description": "Centralized digital library, bilingual learning database, and NCVT CBT test portal for ITIs in Uttar Pradesh with Moodle integration and Hostinger export support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
