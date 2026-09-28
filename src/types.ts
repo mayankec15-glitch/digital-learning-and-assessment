@@ -1,5 +1,7 @@
 export type Language = 'hi' | 'en';
 
+export type PortalTheme = 'imperial_navy' | 'modern_emerald' | 'executive_dark';
+
 export type TradeCategory = 'engineering' | 'non-engineering' | 'workshop-common';
 
 export interface Trade {
@@ -128,6 +130,13 @@ export interface ITIInstitute {
   name: string;
   district: string;
   type: 'Government' | 'Private';
+  id?: string;
+  zone?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  totalSeats?: number;
+  affiliatedTradesCount?: number;
 }
 
 export type UserRole = 'directorate' | 'central_content' | 'iti_admin' | 'trainee';
@@ -246,15 +255,23 @@ export interface TraineeAccount {
   fullName: string;
   tradeId: string;
   itiCode: string;
+  itiName?: string;
   semester: number;
   registrationYear: string;
   fatherName: string;
   category: string;
   mobile: string;
+  email?: string;
+  password?: string;
+  dob?: string;
+  gender?: string;
+  aadhaarLast4?: string;
   mockTestsTaken: number;
   averageScore: number;
   lastTestDate?: string;
-  status: 'Active' | 'Exam Registered';
+  status: 'Active' | 'Exam Registered' | 'Suspended';
+  uploadedBy?: 'Directorate' | 'ITI Admin';
+  createdAt?: string;
 }
 
 export interface TraineeMistakeItem {

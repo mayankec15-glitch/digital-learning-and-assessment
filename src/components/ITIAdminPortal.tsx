@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { Language, ITIBatch, ITILabSession, ITIInstitute } from '../types';
+import { Language, ITIBatch, ITILabSession, ITIInstitute, TraineeAccount } from '../types';
 import { UP_ITI_INSTITUTES, SAMPLE_ITI_BATCHES, SAMPLE_LAB_SESSIONS, SAMPLE_TRAINEE_ACCOUNTS, TRADES, STATE_SCHEDULED_EXAMS } from '../data';
+import { ComplianceITIDirectory } from './ComplianceITIDirectory';
+import { TraineeBatchUploadModal } from './TraineeBatchUploadModal';
+import { getStoredTrainees, exportTraineeCredentialsCsv } from '../utils/traineeUserManager';
 import {
   School,
   Users,
@@ -24,7 +27,7 @@ import {
 interface ITIAdminPortalProps {
   language: Language;
   onLaunchPracticeTest: (tradeId: string) => void;
-  onNavigateToTab: (tab: 'library' | 'cbt' | 'moodle' | 'hostinger') => void;
+  onNavigateToTab: (tab: 'library' | 'cbt' | 'moodle' | 'hostinger' | 'vapt_security') => void;
 }
 
 export const ITIAdminPortal: React.FC<ITIAdminPortalProps> = ({
@@ -32,8 +35,8 @@ export const ITIAdminPortal: React.FC<ITIAdminPortalProps> = ({
   onLaunchPracticeTest,
   onNavigateToTab,
 }) => {
-  const [selectedItiCode, setSelectedItiCode] = useState<string>('ITI-0101');
-  const [activeTab, setActiveTab] = useState<'batches' | 'labs' | 'trainees'>('batches');
+  const [selectedItiCode, setSelectedItiCode] = useState<string>(UP_ITI_INSTITUTES[0]?.code || 'ITI-UP-001');
+  const [activeTab, setActiveTab] = useState<'batches' | 'labs' | 'trainees' | 'all_itis'>('batches');
   const [searchTrainee, setSearchTrainee] = useState('');
   const [notification, setNotification] = useState<string | null>(null);
 
@@ -43,6 +46,17 @@ export const ITIAdminPortal: React.FC<ITIAdminPortalProps> = ({
   const [batches] = useState<ITIBatch[]>(SAMPLE_ITI_BATCHES);
   const [labSessions, setLabSessions] = useState<ITILabSession[]>(SAMPLE_LAB_SESSIONS);
   const [showAddLabModal, setShowAddLabModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [traineesList, setTraineesList] = useState<TraineeAccount[]>(() => getStoredTrainees());
+
+  // Listen to trainees update event
+  React.useEffect(() => {
+    const handleUpdate = () => {
+      setTraineesList(getStoredTrainees());
+    };
+    window.addEventListener('trainees-updated', handleUpdate);
+    return () => window.removeEventListener('trainees-updated', handleUpdate);
+  }, []);
 
   // New Lab Slot Form State
   const [newLabName, setNewLabName] = useState('Computer Lab 2');
@@ -51,10 +65,12 @@ export const ITIAdminPortal: React.FC<ITIAdminPortalProps> = ({
   const [newLabShift, setNewLabShift] = useState<ITILabSession['shift']>('Morning (09:30 - 11:30)');
   const [newLabInvigilator, setNewLabInvigilator] = useState('Er. Alok Verma');
 
-  const filteredTrainees = SAMPLE_TRAINEE_ACCOUNTS.filter(
+  const filteredTrainees = traineesList.filter(
     (t) =>
-      t.fullName.toLowerCase().includes(searchTrainee.toLowerCase()) ||
-      t.rollNumber.toLowerCase().includes(searchTrainee.toLowerCase())
+      (t.fullName.toLowerCase().includes(searchTrainee.toLowerCase()) ||
+        t.rollNumber.toLowerCase().includes(searchTrainee.toLowerCase()) ||
+        t.tradeId.toLowerCase().includes(searchTrainee.toLowerCase())) &&
+      (t.itiCode === selectedItiCode || searchTrainee !== '')
   );
 
   const handleAddLabSlot = (e: React.FormEvent) => {
@@ -350,6 +366,21 @@ export const ITIAdminPortal: React.FC<ITIAdminPortalProps> = ({
           <UserCheck className="w-4 h-4" />
           <span>{language === 'hi' ? 'प्रशिक्षार्थी सत्यापन सूची' : 'Trainee Verification List'}</span>
         </button>
+
+        <button
+          type="button"
+          id="btn-tab-compliance-itis"
+          onClick={() => setActiveTab('all_itis')}
+          className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+            activeTab === 'all_itis' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <School className="w-4 h-4" />
+          <span>{language === 'hi' ? 'समस्त 286 राजकीय आईटीआई (compliance-dteup.in)' : 'All 286 ITIs Directory'}</span>
+          <span className="bg-emerald-200 text-emerald-950 text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">
+            286
+          </span>
+        </button>
       </div>
 
       {/* TAB 1: Batches Roster */}
@@ -566,19 +597,41 @@ export const ITIAdminPortal: React.FC<ITIAdminPortalProps> = ({
                 {language === 'hi' ? 'प्रशिक्षार्थी नामांकन एवं सीबीटी तत्परता सूची' : 'Trainee Enrollment & CBT Readiness'}
               </h3>
               <p className="text-xs text-slate-500">
-                Verified against State SCVT/NCVT Portal Database
+                {currentIti.name} ({currentIti.code}) • {filteredTrainees.length} Active Trainee Users
               </p>
             </div>
 
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-              <input
-                type="text"
-                value={searchTrainee}
-                onChange={(e) => setSearchTrainee(e.target.value)}
-                placeholder="Search trainee name or roll..."
-                className="pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 w-56"
-              />
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  value={searchTrainee}
+                  onChange={(e) => setSearchTrainee(e.target.value)}
+                  placeholder="Search trainee name, roll, or trade..."
+                  className="pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 w-52 sm:w-60"
+                />
+              </div>
+
+              <button
+                type="button"
+                id="btn-iti-upload-trainees"
+                onClick={() => setShowUploadModal(true)}
+                className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{language === 'hi' ? 'प्रशिक्षार्थी डेटा अपलोड' : 'Upload Trainees'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => exportTraineeCredentialsCsv(filteredTrainees, `${selectedItiCode}_Trainee_Credentials.csv`)}
+                className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs border border-slate-300 flex items-center gap-1.5 cursor-pointer"
+                title="Export Login Passwords CSV"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>{language === 'hi' ? 'क्रेडेंशियल CSV' : 'Export Credentials'}</span>
+              </button>
             </div>
           </div>
 
@@ -589,6 +642,7 @@ export const ITIAdminPortal: React.FC<ITIAdminPortalProps> = ({
                   <th className="py-2.5 px-3">Roll Number</th>
                   <th className="py-2.5 px-3">Trainee Name</th>
                   <th className="py-2.5 px-3">Trade</th>
+                  <th className="py-2.5 px-3">Login Password / User</th>
                   <th className="py-2.5 px-3 text-center">Semester</th>
                   <th className="py-2.5 px-3 text-center">Tests Taken</th>
                   <th className="py-2.5 px-3 text-center">Avg Score</th>
@@ -598,12 +652,24 @@ export const ITIAdminPortal: React.FC<ITIAdminPortalProps> = ({
               <tbody className="divide-y divide-slate-200">
                 {filteredTrainees.map((t) => (
                   <tr key={t.id} className="hover:bg-slate-50">
-                    <td className="py-2.5 px-3 font-mono font-bold text-slate-900">{t.rollNumber}</td>
+                    <td className="py-2.5 px-3 font-mono font-bold text-slate-900 bg-slate-50/50">
+                      {t.rollNumber}
+                    </td>
                     <td className="py-2.5 px-3 font-medium text-slate-800">
-                      <div>{t.fullName}</div>
+                      <div className="font-bold">{t.fullName}</div>
                       <div className="text-[10px] text-slate-400">S/o {t.fatherName}</div>
                     </td>
                     <td className="py-2.5 px-3 capitalize font-semibold text-emerald-800">{t.tradeId}</td>
+                    <td className="py-2.5 px-3 font-mono text-xs">
+                      <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 font-bold">
+                        {t.password || `UP2026@${t.rollNumber.slice(-4)}`}
+                      </span>
+                      {t.uploadedBy && (
+                        <span className="ml-1 text-[9px] text-slate-400 font-sans block">
+                          by {t.uploadedBy}
+                        </span>
+                      )}
+                    </td>
                     <td className="py-2.5 px-3 text-center font-mono">Sem {t.semester}</td>
                     <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-900">{t.mockTestsTaken}</td>
                     <td className="py-2.5 px-3 text-center">
@@ -623,6 +689,40 @@ export const ITIAdminPortal: React.FC<ITIAdminPortalProps> = ({
           </div>
         </div>
       )}
+
+      {/* TAB 4: All 286 Govt ITIs Master Directory from compliance-dteup.in */}
+      {activeTab === 'all_itis' && (
+        <ComplianceITIDirectory
+          language={language}
+          onSelectITI={(iti) => {
+            setSelectedItiCode(iti.code);
+            setActiveTab('batches');
+            setNotification(
+              language === 'hi'
+                ? `सक्रिय संस्थान बदला गया: ${iti.name} (${iti.code})`
+                : `Active Institute Changed to: ${iti.name} (${iti.code})`
+            );
+            setTimeout(() => setNotification(null), 4000);
+          }}
+        />
+      )}
+
+      {/* Trainee User Bulk Upload Modal */}
+      <TraineeBatchUploadModal
+        language={language}
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onSuccess={(count) => {
+          setNotification(
+            language === 'hi'
+              ? `सफलता: ${count} नए प्रशिक्षार्थी यूजर अकाउंट सफलतापूर्वक निर्मित!`
+              : `Success: ${count} new trainee user accounts successfully created!`
+          );
+          setTimeout(() => setNotification(null), 5000);
+        }}
+        callerRole="ITI Admin"
+        preselectedItiCode={selectedItiCode}
+      />
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Language, UserRole, AuthenticatedUser } from '../types';
 import { DEFAULT_PORTAL_USERS } from '../data';
 import { generateVAPTCompliantJWT } from '../utils/securityAndVAPT';
+import { authenticateTrainee } from '../utils/traineeUserManager';
 import {
   ShieldCheck,
   KeyRound,
@@ -202,6 +203,31 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           (u.username.toLowerCase() === usernameInput.toLowerCase() ||
             u.employeeOrRollId.toLowerCase() === usernameInput.toLowerCase())
       );
+
+      // Check if candidate is in dynamic trainee user database
+      if (selectedRole === 'trainee') {
+        const traineeAuth = authenticateTrainee(usernameInput, passwordInput);
+        if (traineeAuth.success && traineeAuth.trainee) {
+          const t = traineeAuth.trainee;
+          authenticated = {
+            id: t.id,
+            username: t.rollNumber,
+            name: t.fullName,
+            role: 'trainee',
+            designation: {
+              en: `CTS Trainee - ${t.tradeId.toUpperCase()} (Sem ${t.semester})`,
+              hi: `सीटीएस प्रशिक्षार्थी - ${t.tradeId.toUpperCase()} (सत्र ${t.semester})`,
+            },
+            departmentOrITI: t.itiName || t.itiCode,
+            avatarInitials: t.fullName.slice(0, 2).toUpperCase(),
+            email: t.email || `${t.rollNumber.toLowerCase()}@trainee.scvtup.in`,
+            mobile: t.mobile,
+            employeeOrRollId: t.rollNumber,
+            lastLogin: 'Just Now (Authenticated)',
+            twoFactorEnabled: true,
+          };
+        }
+      }
 
       if (!authenticated) {
         // Create dynamic authenticated session for custom trainee/official

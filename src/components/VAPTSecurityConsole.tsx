@@ -8,6 +8,7 @@ import {
   getLiveConcurrencyHealthMetrics,
   JWTPayload,
 } from '../utils/securityAndVAPT';
+import { LoadStressTester } from './LoadStressTester';
 import {
   ShieldCheck,
   Lock,
@@ -40,7 +41,7 @@ export const VAPTSecurityConsole: React.FC<VAPTSecurityConsoleProps> = ({
   language,
   currentUser,
 }) => {
-  const [activeTab, setActiveTab] = useState<'vapt_audit' | 'jwt_inspector' | 'concurrency_20k'>('vapt_audit');
+  const [activeTab, setActiveTab] = useState<'vapt_audit' | 'concurrency_20k' | 'load_stress' | 'jwt_inspector'>('vapt_audit');
   
   // Real-time Concurrency Simulation state
   const [healthMetrics, setHealthMetrics] = useState(getLiveConcurrencyHealthMetrics());
@@ -193,7 +194,7 @@ export const VAPTSecurityConsole: React.FC<VAPTSecurityConsoleProps> = ({
           </div>
         </div>
 
-        {/* 3 Top Subtabs */}
+        {/* 4 Top Subtabs */}
         <div className="flex flex-wrap gap-2 mt-6 pt-4 border-t border-slate-800">
           <button
             type="button"
@@ -229,6 +230,22 @@ export const VAPTSecurityConsole: React.FC<VAPTSecurityConsoleProps> = ({
 
           <button
             type="button"
+            onClick={() => setActiveTab('load_stress')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+              activeTab === 'load_stress'
+                ? 'bg-rose-600 text-white shadow-md'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            <Activity className="w-4 h-4 text-rose-300 animate-pulse" />
+            <span>3. Load Stress Tester (Live Simulator)</span>
+            <span className="bg-rose-400/20 text-rose-300 text-[10px] px-1.5 py-0.5 rounded font-bold">
+              Real-Time
+            </span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveTab('jwt_inspector')}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === 'jwt_inspector'
@@ -237,7 +254,7 @@ export const VAPTSecurityConsole: React.FC<VAPTSecurityConsoleProps> = ({
             }`}
           >
             <Code className="w-4 h-4 text-purple-300" />
-            <span>3. JWT RFC-7519 Token Inspector</span>
+            <span>4. JWT RFC-7519 Token Inspector</span>
             <span className="bg-purple-400/20 text-purple-300 text-[10px] px-1.5 py-0.5 rounded">
               Verified
             </span>
@@ -359,13 +376,21 @@ export const VAPTSecurityConsole: React.FC<VAPTSecurityConsoleProps> = ({
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('load_stress')}
+                  className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md cursor-pointer transition-all"
+                >
+                  <Activity className="w-3.5 h-3.5 text-white animate-pulse" />
+                  <span>Interactive Stress Tester</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => setStressTestMode(!stressTestMode)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     stressTestMode
-                      ? 'bg-rose-600 text-white shadow-md'
+                      ? 'bg-amber-600 text-white shadow-md'
                       : 'bg-blue-800/80 text-blue-200 hover:bg-blue-700'
                   }`}
                 >
@@ -460,7 +485,14 @@ export const VAPTSecurityConsole: React.FC<VAPTSecurityConsoleProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 3: RFC-7519 JSON WEB TOKEN (JWT) LIVE INSPECTOR */}
+      {/* TAB 3: HIGH-CONCURRENCY LOAD STRESS TESTER (LIVE SIMULATOR) */}
+      {/* ========================================================================= */}
+      {activeTab === 'load_stress' && (
+        <LoadStressTester language={language} />
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 4: RFC-7519 JSON WEB TOKEN (JWT) LIVE INSPECTOR */}
       {/* ========================================================================= */}
       {activeTab === 'jwt_inspector' && (
         <div className="space-y-6">

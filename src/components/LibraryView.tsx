@@ -63,46 +63,53 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Banner / Stat Row */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-amber-950 text-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-800 relative overflow-hidden">
+      {/* Banner / Stat Row - Modern GovTech Style */}
+      <div className="bg-[#0B1528] text-white rounded-2xl p-6 sm:p-8 shadow-md border border-slate-800 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold mb-3 border border-amber-500/30">
-            <Sparkles className="w-3.5 h-3.5" />
-            {language === 'hi' ? 'उत्तर प्रदेश राजकीय एवं निजी आईटीआई' : 'UP Govt & Private ITI Digital Library'}
+          <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-amber-400 mb-2">
+            <span className="font-bold uppercase tracking-wider">
+              {language === 'hi' ? 'उत्तर प्रदेश डिजिटल रिपॉजिटरी' : 'UP State Digital Repository'}
+            </span>
+            <span aria-hidden="true" className="text-slate-600">·</span>
+            <span className="text-slate-300">NIMI Standard</span>
+            <span aria-hidden="true" className="text-slate-600">·</span>
+            <span className="text-emerald-400 font-medium">Bilingual CTS (हिंदी / English)</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
+
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
             {language === 'hi'
               ? 'निमी (NIMI) एवं भारत स्किल्स प्रमाणित ई-संसाधन'
               : 'NIMI & Bharat Skills Certified Digital Learning Repository'}
           </h2>
           <p className="text-slate-300 text-sm leading-relaxed mb-6">
             {language === 'hi'
-              ? 'ट्रेड थ्योरी, कार्यशाला प्रैक्टिकल मैनुअल, डब्ल्यूसीएस (WCS) और एम्प्लॉयबिलिटी स्किल्स की द्विभाषी (हिंदी/अंग्रेजी) पाठ्य सामग्री डाउनलोड करें और ऑनलाइन पढ़ें।'
+              ? 'ट्रेड थ्योरी, कार्यशाला प्रैक्टिकल मैनुअल, डब्ल्यूसीएस (WCS) और एम्प्लॉयबिलिटी स्किल्स की द्विभाषी पाठ्य सामग्री डाउनलोड करें और ऑनलाइन पढ़ें।'
               : 'Curated e-books, CTS practical job sheets, video lectures, and question banks aligned with the latest NCVT/SCVT curriculum for UP ITI trainees.'}
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            <div className="bg-white/10 backdrop-blur-xs rounded-xl p-3 border border-white/10">
-              <span className="block text-2xl font-bold text-amber-400">300+</span>
-              <span className="text-xs text-slate-300">
+            <div className="bg-slate-900/80 rounded-xl p-3 border border-slate-800">
+              <span className="block text-2xl font-bold font-mono text-amber-400">315</span>
+              <span className="text-xs text-slate-400">
                 {language === 'hi' ? 'राजकीय आईटीआई' : 'Govt ITIs Connected'}
               </span>
             </div>
-            <div className="bg-white/10 backdrop-blur-xs rounded-xl p-3 border border-white/10">
-              <span className="block text-2xl font-bold text-orange-400">2,500+</span>
-              <span className="text-xs text-slate-300">
+            <div className="bg-slate-900/80 rounded-xl p-3 border border-slate-800">
+              <span className="block text-2xl font-bold font-mono text-slate-200">2,850</span>
+              <span className="text-xs text-slate-400">
                 {language === 'hi' ? 'निजी आईटीआई' : 'Private ITIs in UP'}
               </span>
             </div>
-            <div className="bg-white/10 backdrop-blur-xs rounded-xl p-3 border border-white/10">
-              <span className="block text-2xl font-bold text-emerald-400">100%</span>
-              <span className="text-xs text-slate-300">
+            <div className="bg-slate-900/80 rounded-xl p-3 border border-slate-800">
+              <span className="block text-2xl font-bold font-mono text-emerald-400">100%</span>
+              <span className="text-xs text-slate-400">
                 {language === 'hi' ? 'निमी पैटर्न सामग्री' : 'NIMI Standard CTS'}
               </span>
             </div>
-            <div className="bg-white/10 backdrop-blur-xs rounded-xl p-3 border border-white/10">
-              <span className="block text-2xl font-bold text-sky-400">Offline</span>
-              <span className="text-xs text-slate-300">
+            <div className="bg-slate-900/80 rounded-xl p-3 border border-slate-800">
+              <span className="block text-2xl font-bold font-mono text-cyan-400">PWA Offline</span>
+              <span className="text-xs text-slate-400">
                 {language === 'hi' ? 'कैश सपोर्ट' : 'Low-Bandwidth Mode'}
               </span>
             </div>

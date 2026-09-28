@@ -13,23 +13,23 @@ import {
   TraineeMistakeItem,
 } from './types';
 
-export const UP_ITI_INSTITUTES: ITIInstitute[] = [
-  { code: 'ITI-0101', name: 'Govt. ITI Aliganj', district: 'Lucknow', type: 'Government' },
-  { code: 'ITI-0102', name: 'Govt. ITI Pandu Nagar', district: 'Kanpur Nagar', type: 'Government' },
-  { code: 'ITI-0103', name: 'Govt. ITI Naini', district: 'Prayagraj', type: 'Government' },
-  { code: 'ITI-0104', name: 'Govt. ITI Karaundi', district: 'Varanasi', type: 'Government' },
-  { code: 'ITI-0105', name: 'Govt. ITI Meerut Cantt', district: 'Meerut', type: 'Government' },
-  { code: 'ITI-0106', name: 'Govt. ITI Agra', district: 'Agra', type: 'Government' },
-  { code: 'ITI-0107', name: 'Govt. ITI Chharra', district: 'Aligarh', type: 'Government' },
-  { code: 'ITI-0108', name: 'Govt. ITI Gorakhpur', district: 'Gorakhpur', type: 'Government' },
-  { code: 'ITI-0109', name: 'Govt. ITI Jhansi', district: 'Jhansi', type: 'Government' },
-  { code: 'ITI-0110', name: 'Govt. ITI Bareilly', district: 'Bareilly', type: 'Government' },
-  { code: 'ITI-0111', name: 'Govt. ITI Ayodhya (Faizabad)', district: 'Ayodhya', type: 'Government' },
-  { code: 'ITI-0112', name: 'Govt. ITI Moradabad', district: 'Moradabad', type: 'Government' },
-  { code: 'ITI-0113', name: 'Govt. ITI Saharanpur', district: 'Saharanpur', type: 'Government' },
-  { code: 'ITI-0114', name: 'Govt. ITI Banda', district: 'Banda', type: 'Government' },
-  { code: 'ITI-0115', name: 'Govt. ITI Azamgarh', district: 'Azamgarh', type: 'Government' },
-];
+import rawComplianceItis from './complianceDteupItis.json';
+
+export const COMPLIANCE_DTEUP_ITIS: ITIInstitute[] = rawComplianceItis.map((item: any) => ({
+  id: item.id,
+  code: item.code,
+  name: item.name,
+  district: item.district,
+  zone: item.zone,
+  type: 'Government' as const,
+  email: item.email,
+  phone: item.phone,
+  address: item.address,
+  totalSeats: item.total_seats || 600,
+  affiliatedTradesCount: item.affiliated_trades_count || 16,
+}));
+
+export const UP_ITI_INSTITUTES: ITIInstitute[] = COMPLIANCE_DTEUP_ITIS;
 
 export const TRADES: Trade[] = [
   {

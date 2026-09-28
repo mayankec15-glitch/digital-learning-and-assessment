@@ -8,6 +8,8 @@ import {
   STATEWIDE_TRADE_PERFORMANCE,
   INSTITUTION_PERFORMANCE_RECORDS,
 } from './PassFailRateAnalytics';
+import { ComplianceITIDirectory } from './ComplianceITIDirectory';
+import { TraineeBatchUploadModal } from './TraineeBatchUploadModal';
 import {
   BarChart,
   Bar,
@@ -60,7 +62,7 @@ import {
 
 interface DirectorateDashboardProps {
   language: Language;
-  onNavigateToTab: (tab: 'library' | 'cbt' | 'moodle' | 'hostinger') => void;
+  onNavigateToTab: (tab: 'library' | 'cbt' | 'moodle' | 'hostinger' | 'vapt_security') => void;
 }
 
 interface UploadedContentItem {
@@ -82,10 +84,11 @@ export const DirectorateDashboard: React.FC<DirectorateDashboardProps> = ({
   language,
   onNavigateToTab,
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'pass_fail_analytics' | 'live_monitoring' | 'exam_scheduler' | 'upload_content' | 'upload_test' | 'workflow_guide' | 'circulars'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'pass_fail_analytics' | 'live_monitoring' | 'exam_scheduler' | 'upload_content' | 'upload_test' | 'workflow_guide' | 'circulars' | 'iti_directory'>('overview');
   const [searchDistrict, setSearchDistrict] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'excellent' | 'normal' | 'attention'>('all');
   const [feedbackMessage, setFeedbackMessage] = useState<{ text: string; type: 'success' | 'info' } | null>(null);
+  const [showTraineeUploadModal, setShowTraineeUploadModal] = useState<boolean>(false);
 
   // Upload Content Form State
   const [contentTitleEn, setContentTitleEn] = useState('');
@@ -395,78 +398,102 @@ ELEC,Employability Skills,Easy,"What does 'RAM' stand for in computer systems?",
 
   return (
     <div className="space-y-6">
-      {/* Directorate Header Banner */}
-      <div className="bg-gradient-to-br from-amber-950 via-slate-900 to-amber-900 text-white rounded-2xl p-6 sm:p-8 border border-amber-800/40 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Directorate Header Banner - Modern GovTech Aesthetic */}
+      <div className="bg-[#0B1528] text-white rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-md relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="bg-amber-500/20 text-amber-300 border border-amber-400/30 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-amber-400">
+              <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">
                 <Landmark className="w-3.5 h-3.5" />
                 {language === 'hi' ? 'निदेशालय प्रशासनिक केंद्र' : 'Directorate Apex Desk'}
               </span>
-              <span className="text-xs text-amber-200/80 bg-white/10 px-2.5 py-1 rounded-full font-mono">
-                75 Districts • 315 Govt ITIs • 2,850 Pvt ITIs
-              </span>
+              <span aria-hidden="true" className="text-slate-600">·</span>
+              <span className="text-slate-300">75 Districts</span>
+              <span aria-hidden="true" className="text-slate-600">·</span>
+              <span className="text-slate-300">3,165 ITIs (Govt & Pvt)</span>
+              <span aria-hidden="true" className="text-slate-600">·</span>
+              <span className="text-emerald-400">NCVT / SCVT CTS</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               {language === 'hi'
                 ? 'प्रशिक्षण एवं सेवायोजन निदेशालय, उत्तर प्रदेश'
                 : 'Directorate of Training & Employment, Govt. of Uttar Pradesh'}
             </h1>
-            <p className="text-sm text-amber-100/90 leading-relaxed">
+            <p className="text-sm text-slate-300 leading-relaxed">
               {language === 'hi'
-                ? 'निमी आधारित डिजिटल सामग्री अपलोड, केंद्रीकृत सीबीटी परीक्षा निर्माण, जिलावार निगरानी एवं मूडल/होस्टिंगर सर्वर वितरण।'
+                ? 'निमी आधारित डिजिटल सामग्री प्रबंधन, केंद्रीकृत सीबीटी परीक्षा शेड्यूलिंग, जिलावार प्रदर्शन एनालिटिक्स एवं संस्थागत निगरानी।'
                 : 'Centralized NIMI E-Content uploading, state CBT exam scheduling, district analytics, and Moodle/Hostinger distribution.'}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
             <button
-              id="btn-directorate-pass-fail-analytics"
-              type="button"
-              onClick={() => setActiveSubTab('pass_fail_analytics')}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-all"
-            >
-              <Award className="w-4 h-4 text-emerald-200" />
-              <span>{language === 'hi' ? 'उत्तीर्ण/अनुत्तीर्ण एनालिटिक्स' : 'Pass/Fail Rates'}</span>
-            </button>
-            <button
               id="btn-directorate-live-telemetry"
               type="button"
               onClick={() => setActiveSubTab('live_monitoring')}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-all animate-pulse"
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-all cursor-pointer"
             >
-              <Radio className="w-4 h-4 text-white" />
+              <Radio className="w-4 h-4 text-emerald-200 animate-pulse" />
               <span>{language === 'hi' ? 'लाइव परीक्षा मॉनिटर' : 'Live Exam Monitor'}</span>
             </button>
             <button
-              id="btn-directorate-upload-content"
+              id="btn-directorate-pass-fail-analytics"
               type="button"
-              onClick={() => setActiveSubTab('upload_content')}
-              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-all"
+              onClick={() => setActiveSubTab('pass_fail_analytics')}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer"
             >
-              <UploadCloud className="w-4 h-4" />
-              <span>{language === 'hi' ? 'सामग्री अपलोड करें' : 'Upload Content'}</span>
+              <Award className="w-4 h-4 text-amber-400" />
+              <span>{language === 'hi' ? 'उत्तीर्ण/अनुत्तीर्ण दर' : 'Pass/Fail Rates'}</span>
             </button>
             <button
               id="btn-directorate-upload-test"
               type="button"
               onClick={() => setActiveSubTab('upload_test')}
-              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-all"
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer"
             >
-              <Award className="w-4 h-4 text-amber-300" />
-              <span>{language === 'hi' ? 'नया टेस्ट शेड्यूल करें' : 'Upload & Schedule Test'}</span>
+              <Award className="w-4 h-4 text-indigo-400" />
+              <span>{language === 'hi' ? 'टेस्ट शेड्यूल' : 'Schedule Test'}</span>
+            </button>
+            <button
+              id="btn-directorate-upload-content"
+              type="button"
+              onClick={() => setActiveSubTab('upload_content')}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer"
+            >
+              <UploadCloud className="w-4 h-4 text-blue-400" />
+              <span>{language === 'hi' ? 'सामग्री अपलोड' : 'Upload Content'}</span>
+            </button>
+            <button
+              id="btn-directorate-iti-directory"
+              type="button"
+              onClick={() => setActiveSubTab('iti_directory')}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer"
+            >
+              <School className="w-4 h-4 text-emerald-400" />
+              <span>{language === 'hi' ? '286 ITI डायरेक्टरी' : '286 ITIs Directory'}</span>
+            </button>
+            <button
+              id="btn-directorate-upload-trainees"
+              type="button"
+              onClick={() => setShowTraineeUploadModal(true)}
+              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+            >
+              <Users className="w-4 h-4 text-slate-950" />
+              <span>{language === 'hi' ? 'प्रशिक्षार्थी डेटा अपलोड' : 'Upload Trainees'}</span>
+              <span className="bg-slate-950/20 text-slate-950 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold">
+                User Creation
+              </span>
             </button>
             <button
               id="btn-export-directorate-csv"
               type="button"
               onClick={handleExportStatewideCSV}
-              className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs border border-white/20 flex items-center gap-2 transition-all"
+              className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all cursor-pointer"
               title="Download Statewide CSV Report"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{language === 'hi' ? 'राज्य रिपोर्ट' : 'State CSV'}</span>
+              <Download className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -495,131 +522,136 @@ ELEC,Employability Skills,Easy,"What does 'RAM' stand for in computer systems?",
         </div>
       )}
 
-      {/* Directorate Sub-Navigation Tabs */}
-      <div className="bg-white p-1.5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center gap-1.5 overflow-x-auto">
+      {/* Directorate Sub-Navigation Tabs - Modern Segmented Control */}
+      <div className="bg-white p-1 rounded-xl border border-slate-200/90 shadow-xs flex flex-wrap items-center gap-1 overflow-x-auto">
         <button
           type="button"
           id="btn-subtab-overview"
           onClick={() => setActiveSubTab('overview')}
-          className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
             activeSubTab === 'overview'
-              ? 'bg-amber-600 text-white shadow-xs'
+              ? 'bg-slate-900 text-white shadow-xs font-bold'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
-          <TrendingUp className="w-4 h-4" />
-          <span>{language === 'hi' ? '1. राज्यीय समीक्षा व जनपद प्रगति' : '1. State Review & Districts'}</span>
+          <TrendingUp className="w-3.5 h-3.5 text-amber-400" />
+          <span>{language === 'hi' ? '1. राज्यीय समीक्षा' : '1. State Review'}</span>
         </button>
 
         <button
           type="button"
           id="btn-subtab-pass-fail-analytics"
           onClick={() => setActiveSubTab('pass_fail_analytics')}
-          className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
             activeSubTab === 'pass_fail_analytics'
-              ? 'bg-emerald-700 text-white shadow-xs'
-              : 'text-emerald-800 bg-emerald-50/80 hover:bg-emerald-100 hover:text-emerald-900'
+              ? 'bg-slate-900 text-white shadow-xs font-bold'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
-          <Award className="w-4 h-4 text-emerald-600" />
-          <span>{language === 'hi' ? 'ट्रेडवार उत्तीर्ण/अनुत्तीर्ण दर' : 'Trade Pass/Fail Analytics'}</span>
-          <span className="bg-emerald-200 text-emerald-950 px-1.5 py-0.2 rounded text-[10px] font-bold">
-            Recharts
-          </span>
+          <Award className="w-3.5 h-3.5 text-emerald-400" />
+          <span>{language === 'hi' ? 'उत्तीर्ण/अनुत्तीर्ण दर' : 'Pass/Fail Analytics'}</span>
         </button>
 
         <button
           type="button"
           id="btn-subtab-live-monitoring"
           onClick={() => setActiveSubTab('live_monitoring')}
-          className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
             activeSubTab === 'live_monitoring'
-              ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-xs'
-              : 'text-red-700 bg-red-50/60 hover:bg-red-100 hover:text-red-800'
+              ? 'bg-slate-900 text-white shadow-xs font-bold'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
-          <Radio className="w-4 h-4 text-red-400 animate-pulse" />
-          <span>{language === 'hi' ? 'लाइव सीबीटी निगरानी' : 'Live Exam Telemetry'}</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+          <Radio className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
+          <span>{language === 'hi' ? 'लाइव सीबीटी मॉनिटर' : 'Live Exam Telemetry'}</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-ping" />
         </button>
 
         <button
           type="button"
           id="btn-subtab-exam-scheduler"
           onClick={() => setActiveSubTab('exam_scheduler')}
-          className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
             activeSubTab === 'exam_scheduler'
-              ? 'bg-indigo-600 text-white shadow-xs'
-              : 'text-indigo-700 bg-indigo-50/60 hover:bg-indigo-100 hover:text-indigo-800'
+              ? 'bg-slate-900 text-white shadow-xs font-bold'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
-          <Calendar className="w-4 h-4 text-indigo-400" />
-          <span>{language === 'hi' ? 'परीक्षा शेड्यूलर व केंद्र आवंटन' : 'Exam Scheduler & Branches'}</span>
-          <span className="bg-indigo-200 text-indigo-900 px-1.5 py-0.2 rounded text-[10px] font-bold">
-            {scheduledExamsList.length}
-          </span>
+          <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+          <span>{language === 'hi' ? 'परीक्षा शेड्यूलर' : 'Exam Scheduler'}</span>
         </button>
 
         <button
           type="button"
           id="btn-subtab-upload-content"
           onClick={() => setActiveSubTab('upload_content')}
-          className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
             activeSubTab === 'upload_content'
-              ? 'bg-amber-600 text-white shadow-xs'
+              ? 'bg-slate-900 text-white shadow-xs font-bold'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
-          <UploadCloud className="w-4 h-4 text-amber-300" />
-          <span>{language === 'hi' ? '2. सामग्री अपलोड एवं वितरण' : '2. Upload Content & Books'}</span>
-          <span className="bg-amber-500/20 text-amber-900 px-1.5 py-0.2 rounded text-[10px]">
-            {publishedContentList.length}
-          </span>
+          <UploadCloud className="w-3.5 h-3.5 text-blue-400" />
+          <span>{language === 'hi' ? '2. सामग्री अपलोड' : '2. Upload Content'}</span>
         </button>
 
         <button
           type="button"
           id="btn-subtab-upload-test"
           onClick={() => setActiveSubTab('upload_test')}
-          className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
             activeSubTab === 'upload_test'
-              ? 'bg-amber-600 text-white shadow-xs'
+              ? 'bg-slate-900 text-white shadow-xs font-bold'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
-          <Award className="w-4 h-4 text-orange-400" />
-          <span>{language === 'hi' ? '3. टेस्ट व प्रश्न बैंक अपलोड' : '3. Upload Tests & Exams'}</span>
-          <span className="bg-orange-100 text-orange-800 px-1.5 py-0.2 rounded text-[10px]">
-            {scheduledExamsList.length} Live
-          </span>
+          <Award className="w-3.5 h-3.5 text-amber-400" />
+          <span>{language === 'hi' ? '3. टेस्ट निर्माण' : '3. Test Upload'}</span>
         </button>
 
         <button
           type="button"
           id="btn-subtab-workflow-guide"
           onClick={() => setActiveSubTab('workflow_guide')}
-          className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
             activeSubTab === 'workflow_guide'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-slate-900 text-white shadow-xs font-bold'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
-          <HelpCircle className="w-4 h-4 text-indigo-300" />
-          <span>{language === 'hi' ? '4. अपलोड प्रक्रिया मार्गदर्शिका' : '4. How Directorate Uploads'}</span>
+          <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+          <span>{language === 'hi' ? '4. प्रक्रिया गाइड' : '4. Workflow'}</span>
         </button>
 
         <button
           type="button"
           id="btn-subtab-circulars"
           onClick={() => setActiveSubTab('circulars')}
-          className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
             activeSubTab === 'circulars'
-              ? 'bg-amber-600 text-white shadow-xs'
+              ? 'bg-slate-900 text-white shadow-xs font-bold'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
-          <FileText className="w-4 h-4" />
-          <span>{language === 'hi' ? '5. शासनादेश व परिपत्र' : '5. Circulars & Orders'}</span>
+          <FileText className="w-3.5 h-3.5 text-slate-400" />
+          <span>{language === 'hi' ? '5. शासनादेश' : '5. Circulars'}</span>
+        </button>
+
+        <button
+          type="button"
+          id="btn-subtab-iti-directory"
+          onClick={() => setActiveSubTab('iti_directory')}
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+            activeSubTab === 'iti_directory'
+              ? 'bg-slate-900 text-white shadow-xs font-bold'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          }`}
+        >
+          <School className="w-3.5 h-3.5 text-emerald-400" />
+          <span>{language === 'hi' ? '6. राजकीय ITI डायरेक्टरी (286)' : '6. 286 ITIs Directory'}</span>
+          <span className="bg-emerald-500/20 text-emerald-600 font-mono text-[10px] px-1 rounded">
+            compliance-dteup
+          </span>
         </button>
       </div>
 
@@ -2118,6 +2150,30 @@ ELEC,Employability Skills,Easy,"What does 'RAM' stand for in computer systems?",
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* VIEW 6: COMPLIANCE DTEUP 286 ITI MASTER DIRECTORY */}
+      {/* ========================================================================= */}
+      {activeSubTab === 'iti_directory' && (
+        <ComplianceITIDirectory language={language} />
+      )}
+
+      {/* Trainee User Bulk Creation Modal */}
+      <TraineeBatchUploadModal
+        language={language}
+        isOpen={showTraineeUploadModal}
+        onClose={() => setShowTraineeUploadModal(false)}
+        onSuccess={(count) => {
+          setFeedbackMessage({
+            text:
+              language === 'hi'
+                ? `सफलता: ${count} नए प्रशिक्षार्थी यूजर अकाउंट बनाए गए! छात्र अब अपने रोल नंबर से सीधे लॉगिन कर सकते हैं।`
+                : `Success: ${count} new trainee user accounts created! Candidates can now immediately log in with their roll number.`,
+            type: 'success',
+          });
+        }}
+        callerRole="Directorate"
+      />
     </div>
   );
 };

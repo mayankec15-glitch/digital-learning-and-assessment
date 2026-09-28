@@ -22,7 +22,7 @@ import {
 
 interface CentralContentAssessmentViewProps {
   language: Language;
-  onNavigateToTab: (tab: 'library' | 'cbt' | 'moodle' | 'hostinger') => void;
+  onNavigateToTab: (tab: 'library' | 'cbt' | 'moodle' | 'hostinger' | 'vapt_security') => void;
 }
 
 export const CentralContentAssessmentView: React.FC<CentralContentAssessmentViewProps> = ({
